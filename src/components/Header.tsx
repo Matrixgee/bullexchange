@@ -22,7 +22,7 @@ const Header: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <img src={logo} alt="logo here" className="h-[95px] w-[95px]" />
+            <img src={logo} alt="logo here" className="h-[65px] w-[60px]" />
           </motion.div>
 
           <nav className="hidden md:flex space-x-8">
