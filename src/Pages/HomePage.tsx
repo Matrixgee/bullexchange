@@ -8,17 +8,17 @@ import CTA from "./CTA";
 
 const HomePage: React.FC = () => {
 
-  return (
-    <div className="bg-gradient-to-b from-gray-900 via-black to-gray-900 min-h-screen">
+    return (
+        <div className="bg-gradient-to-b from-gray-900 via-black to-gray-900 min-h-screen">
 
-      <HeroSection />
+            <HeroSection />
             <StatsSection />
             <MarketInsightsSection />
             <FeaturesSection />
             <TechnologySection />
             <InvestmentPlansSection />
             <CTA />
-    </div>
-  );
+        </div>
+    );
 };
 export default HomePage

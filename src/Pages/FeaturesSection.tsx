@@ -36,7 +36,7 @@ const FeaturesSection = () => {
           transition={{ duration: 0.8 }}
         >
           <h2 className="text-4xl font-bold text-white mb-4">
-            Why Choose <span className="bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">Bull Exchange</span>?
+            Why Choose <span className="bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">Bull Market Exchange</span>?
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Experience the future of investing with our comprehensive platform designed for both beginners and professionals.
