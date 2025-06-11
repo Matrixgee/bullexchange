@@ -15,6 +15,12 @@ import Plans from '../Clients/Plan'
 import Packages from '../Clients/Packages'
 import History from '../Clients/History'
 import Support from '../Clients/Support'
+import AdminOverview from '../Admin/AdminOverview'
+import AdminLayout from '../Layout/AdminLayout'
+import AllUsers from '../Admin/AllUsers'
+import AllWithdrawal from '../Admin/AllWithdrawal'
+import AllTransactions from '../Admin/AllTransactions'
+import Analytics from '../Admin/Analytics'
 
 
 export const router = createBrowserRouter([
@@ -85,5 +91,31 @@ export const router = createBrowserRouter([
                 element:<Support/>
             }
         ]
-    }
+    },
+      {
+    path: "admin",
+    element: <AdminLayout />,
+    children: [
+      {
+        path: "adminhome",
+        element: <AdminOverview />,
+      },
+      {
+        path: "allusers",
+        element: <AllUsers />,
+      },
+      {
+        path:"withdrawals",
+        element:<AllWithdrawal/>
+      },
+      {
+        path:"transactions",
+        element:<AllTransactions/>
+      },
+      {
+        path:"analytics",
+        element:<Analytics/>
+      }
+    ],
+  },
 ])
