@@ -46,7 +46,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ active, setActive }) => {
     },
   ];
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const handleMenuClick = (path: string, index: number) => {
     setSelectedMenu(index);
     navigate(path);
@@ -83,7 +83,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ active, setActive }) => {
               </div>
               <div className="logo-text">
                 <span className="brand-name">Admin Panel</span>
-                <span className="brand-subtitle">VertexCrypt</span>
+                <span className="brand-subtitle">BullsMarket Exchange</span>
               </div>
             </div>
             <div className="logo-divider"></div>
@@ -121,7 +121,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ active, setActive }) => {
                 </div>
               </div>
               <div className="user-details">
-                <span className="user-name" style={{color:"#612633"}}>Administrator</span>
+                <span className="user-name" style={{ color: "#612633" }}>
+                  Administrator
+                </span>
                 <span className="user-status">Super Admin</span>
               </div>
             </div>
