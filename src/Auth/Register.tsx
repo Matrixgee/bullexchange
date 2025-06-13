@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
-// import logo from "../assets/vertextone.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { FiCheck } from "react-icons/fi";
+import axios from "../config/axiosconfig";
+import toast from "react-hot-toast";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     userName: "",
     email: "",
     phoneNumber: "",
@@ -19,49 +19,84 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailErr, setEmailErr] = useState<boolean>(false)
+  const [passwordErr, setPasswordErr] = useState<boolean>(false)
+
+  const navigate = useNavigate()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  const passwordRegex = (password: string) => {
+  return /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(password);
+};
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+const emailRegex = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
 
-    if (
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.userName ||
-      !formData.email ||
-      !formData.phoneNumber ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      alert("Please fill all fields.");
-      return;
-    }
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match.");
-      return;
-    }
+  const {
+    fullName,
+    userName,
+    email,
+    phoneNumber,
+    password,
+    confirmPassword,
+  } = formData;
 
-    setLoading(true);
+  // Required field check
+  if (!fullName || !userName || !email || !phoneNumber || !password || !confirmPassword) {
+    toast.error("Please fill all fields.");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    toast.error("Passwords do not match.");
+    return;
+  }
+
+  const isPasswordValid = passwordRegex(password);
+  const isEmailValid = emailRegex(email);
+
+  setPasswordErr(!isPasswordValid);
+  setEmailErr(!isEmailValid);
+
+  if (!isPasswordValid || !isEmailValid) {
+    return; 
+  }
+
+  setLoading(true);
+  const loadingId = toast.loading("Please wait...")
+
+  try {
+    const res = await axios.post("/user/signup", formData);
+    console.log(res)
 
     setTimeout(() => {
-      alert("Account created successfully!");
+      toast.success("Account created successfully!");
       setFormData({
-        firstName: "",
-        lastName: "",
+        fullName: "",
         userName: "",
         email: "",
         phoneNumber: "",
         password: "",
         confirmPassword: "",
       });
-      setLoading(false);
-    }, 1500);
-  };
+      navigate("/login");
+    }, 3000);
+  } catch (error) {
+    console.log(error);
+    toast.error("Signup failed. Please try again.");
+  } finally {
+    setLoading(false);
+    toast.dismiss(loadingId)
+  }
+};
+
 
   const inputClass =
   "bg-black/60 border border-red-700 text-gray-100 placeholder-gray-400 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-black/75 transition duration-200 w-full";
@@ -87,36 +122,21 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
       
 
-         <div className="flex flex-col md:flex-row gap-4">
-  <div className="flex-1">
+
+  <div className="">
     <label htmlFor="firstName" className="text-gray-300 mb-1 block">
-      First Name
+      Full Name
     </label>
     <input
-      id="firstName"
-      name="firstName"
+      id="fullName"
+      name="fullName"
       type="text"
-      value={formData.firstName}
+      value={formData.fullName}
       onChange={handleChange}
       placeholder="John"
       className={inputClass}
     />
   </div>
-  <div className="flex-1">
-    <label htmlFor="lastName" className="text-gray-300 mb-1 block">
-      Last Name
-    </label>
-    <input
-      id="lastName"
-      name="lastName"
-      type="text"
-      value={formData.lastName}
-      onChange={handleChange}
-      placeholder="Doe"
-      className={inputClass}
-    />
-  </div>
-</div>
 
 <div>
   <label htmlFor="userName" className="text-gray-300 mb-1 block">
@@ -147,6 +167,9 @@ const Register = () => {
     className={inputClass}
   />
 </div>
+<p className="text-red-700 text-sm">
+  {emailErr ? "Please enter a valid email address." : null}
+</p>
 
 <div>
   <label htmlFor="phoneNumber" className="text-gray-300 mb-1 block">
@@ -185,6 +208,9 @@ const Register = () => {
     {showPassword ? <BsEyeSlash /> : <BsEye />}
   </button>
 </div>
+<p className="text-red-600 text-sm">
+  {passwordErr ? "Password must be at least 8 characters and include a special character." : null}
+</p>
 
 <div className="relative">
   <label htmlFor="confirmPassword" className="text-gray-300 mb-1 block">

@@ -1,10 +1,69 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { BsEye, BsEyeSlash } from "react-icons/bs";
+import axios from "../config/axiosconfig";
+import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
+import { useDispatch } from "react-redux";
+import { setToken, setUser } from "../Global/UserSlice";
+import { setAdminToken } from "../Global/AdminSlice";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    userName: "",
+    password: ""
+  })
+
+  const dispatch = useDispatch()
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+
+  const navigate = useNavigate()
+  const handleSubmit = async (e: React.FormEvent) => {
+e.preventDefault();
+
+    setLoading(true);
+    const loadingId = toast.loading("Please wait");
+    try {
+      const res = await axios.post("/user/login", formData);
+      console.log(res);
+
+      const userId = res.data.data._id;
+
+      toast.success("Login Successful");
+
+      setTimeout(() => {
+        if (res.data.data.isAdmin) {
+          dispatch(setAdminToken(res.data.data.token));
+          navigate("/admin/adminhome");
+        } else {
+          dispatch(setUser(res.data.data));
+          dispatch(setToken(res.data.token));
+          localStorage.setItem("userId", userId);
+          navigate("/user/overview");
+        }
+      }, 3000);
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message || "An unexpected error occurred";
+        toast.error(errorMsg);
+      } else {
+        toast.error("Error occurred");
+      }
+      setFormData({ userName: "", password: "" });
+    } finally {
+      setLoading(false);
+      toast.dismiss(loadingId);
+    }
+  }
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-900/90 via-black/90 to-black p-6">
@@ -22,12 +81,14 @@ const Login = () => {
           Welcome Back
         </motion.h2>
 
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col">
-            <label className="text-gray-300 mb-1 select-none">Email</label>
+            <label className="text-gray-300 mb-1 select-none">Username</label>
             <input
-              type="email"
-              placeholder="you@example.com"
+              type="text"
+              name="userName"
+              onChange={handleChange}
+              placeholder="(e.g JohnDoe)"
               className="input-red"
             />
           </div>
@@ -36,6 +97,8 @@ const Login = () => {
             <label className="text-gray-300 mb-1 select-none">Password</label>
             <input
               type={showPassword ? "text" : "password"}
+              name="password"
+              onChange={handleChange}
               placeholder="••••••••"
               className="input-red pr-12"
             />
@@ -49,6 +112,7 @@ const Login = () => {
             </button>
           </div>
 
+
           <div className="text-right">
             <Link
               to="/forgot-password"
@@ -60,11 +124,34 @@ const Login = () => {
 
           <motion.button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold flex justify-center items-center shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Login
+            {
+              loading ? (
+                <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg> 
+              ) : "Login"
+            }
           </motion.button>
         </form>
 

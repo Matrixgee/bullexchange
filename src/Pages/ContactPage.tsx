@@ -122,19 +122,19 @@ const ContactPage: React.FC = () => {
                   {
                     icon: <Mail className="w-6 h-6" />,
                     title: 'Email',
-                    info: 'support@bullexchange.com',
+                    info: 'support@bullmarketexchange.com',
                     subtitle: "We'll respond within 24 hours"
                   },
                   {
                     icon: <Phone className="w-6 h-6" />,
                     title: 'Phone',
-                    info: '+1 (555) 123-4567',
+                    info: '07546457566',
                     subtitle: 'Available 24/7'
                   },
                   {
                     icon: <MapPin className="w-6 h-6" />,
                     title: 'Office',
-                    info: '123 Wall Street, New York, NY 10005',
+                    info: 'Atlanta Georgia, USA, postal code 39901',
                     subtitle: 'Mon-Fri, 9AM-6PM EST'
                   }
                 ].map((contact, index) => (
