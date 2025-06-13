@@ -21,6 +21,8 @@ import AllUsers from '../Admin/AllUsers'
 import AllWithdrawal from '../Admin/AllWithdrawal'
 import AllTransactions from '../Admin/AllTransactions'
 import Analytics from '../Admin/Analytics'
+import UserDetails from '../Admin/UserDetails'
+import Updatekyc from '../Clients/UpdateKyc'
 
 
 export const router = createBrowserRouter([
@@ -89,6 +91,10 @@ export const router = createBrowserRouter([
             {
                 path:"support",
                 element:<Support/>
+            },
+            {
+                path:"updatekyc",
+                element:<Updatekyc/>
             }
         ]
     },
@@ -115,6 +121,10 @@ export const router = createBrowserRouter([
       {
         path:"analytics",
         element:<Analytics/>
+      },
+      {
+        path:"userdetails/:_id",
+        element: <UserDetails />,
       }
     ],
   },

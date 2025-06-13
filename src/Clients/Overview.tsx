@@ -1,72 +1,83 @@
 import {
-  DollarSign,
-  TrendingUp,
-  Activity,
-  Target,
-  Wallet,
   ArrowUpRight,
 } from "lucide-react";
 import TradingViewWidget from "../components/TradingViewWidget";
 
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
+import { BiLoaderCircle } from "react-icons/bi";
+import { useEffect, useState } from "react";
+import axios from "../config/axiosconfig";
+
 const Overview = () => {
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>([]); // Ideally type this with a proper User type
+
   const statsCards = [
     {
-      title: "Account Balance",
-      value: "$0",
-      percentage: "+12.5%",
-      icon: <DollarSign className="w-6 h-6" />,
-      color: "from-red-400 to-red-600",
-      bgColor: "bg-slate-800",
-    },
-    {
-      title: "Total Profit",
-      value: "$0",
-      percentage: "+8.2%",
-      icon: <TrendingUp className="w-6 h-6" />,
-      color: "from-red-400 to-red-600",
-      bgColor: "bg-slate-800",
-    },
-    // {
-    //   title: 'Total Bonus',
-    //   value: '$50',
-    //   percentage: '+5.1%',
-    //   icon: <Gift className="w-6 h-6" />,
-    //   color: 'from-red-300 to-red-500',
-    //   bgColor: 'bg-slate-800'
-    // },
-    {
-      title: "Investment Plan",
-      value: "0",
+      title: "Total Balance",
+      value: `$${user.accountBalance || "0.00"}`,
+      icon: <ArrowUpRight className="text-green-400 w-6 h-6" />,
+
+      color: "from-green-600/30 to-emerald-400/30",
       status: "Active",
-      icon: <Activity className="w-6 h-6" />,
-      color: "from-red-500 to-red-600",
-      bgColor: "bg-slate-800",
     },
     {
-      title: "Active Plan",
-      value: "0",
+      title: "Total Profits",
+      value: `$${user.totalProfit || "0.00"}`,
+      icon: <ArrowUpRight className="text-green-400 w-6 h-6" />,
+
+      color: "from-emerald-600/30 to-green-400/30",
       status: "Running",
-      icon: <Target className="w-6 h-6" />,
-      color: "from-red-400 to-red-600",
-      bgColor: "bg-slate-800",
     },
     {
       title: "Total Deposit",
-      value: "$0",
-      percentage: "+22.7%",
-      icon: <Wallet className="w-6 h-6" />,
-      color: "from-red-400 to-red-600",
-      bgColor: "bg-slate-800",
-    },
-    {
-      title: "Withdrawals",
-      value: "$0",
-      status: "Complete",
-      icon: <ArrowUpRight className="w-6 h-6" />,
-      color: "from-slate-400 to-slate-600",
-      bgColor: "bg-slate-800",
+      value: `$${user.totalDeposit || "0.00"}`,
+      icon: <ArrowUpRight className="text-green-400 w-6 h-6" />,
+
+      color: "from-green-500/30 to-green-300/30",
+      status: "Completed",
     },
   ];
+
+  const [fullName, setFullName] = useState("")
+  const token = useSelector((state: any) => state.user.Token);
+  console.log(token);
+
+  const getOneUser = async () => {
+    const userId = localStorage.getItem("userId");
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`/user/userprofile/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUser(res.data.data);
+      setFullName(res.data.data.fullName)
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      toast.error("Failed to fetch user.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getOneUser();
+  }, []);
+
+  if (loading === true) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        <div className="text-center">
+          <BiLoaderCircle className="animate-spin mx-auto mb-4" size={40} />
+          <p className="text-gray-600">Please wait</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-white relative">
@@ -89,7 +100,7 @@ const Overview = () => {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome back, Mike James!
+              Welcome back, {fullName}!
             </h1>
             <p className="text-slate-300 text-lg">
               Here's an overview of your investment portfolio
@@ -109,19 +120,16 @@ const Overview = () => {
                   >
                     {card.icon}
                   </div>
-                  {card.percentage && (
-                    <span className="text-red-400 text-sm font-medium flex items-center bg-red-500/10 px-2 py-1 rounded-lg border border-red-500/20">
-                      <ArrowUpRight className="w-4 h-4 mr-1" />
-                      {card.percentage}
-                    </span>
-                  )}
+                  
                   {card.status && (
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         card.status === "Active"
                           ? "bg-red-500/20 text-red-400 border border-red-500/30"
                           : card.status === "Running"
-                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30" 
+                          : card.status === "Completed"
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : "bg-slate-500/20 text-slate-300 border border-slate-500/30"
                       }`}
                     >

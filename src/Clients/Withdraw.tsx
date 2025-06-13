@@ -1,23 +1,182 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   ArrowDownLeft,
   Clock,
   CheckCircle,
   Eye,
   EyeOff,
+  Bitcoin,
+  Wallet,
+  DollarSign,
+  CreditCard,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+import { useSelector } from "react-redux";
+
+import axios from "../config/axiosconfig";
+import toast from "react-hot-toast";
+
+type PaymentMethod = "btc" | "eth" | "usdt" | "bank" | "paypal";
 
 const Withdraw = () => {
-  const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('bank');
+  const [amount, setAmount] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("btc");
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleWithdrawal = () => {
-    if (amount.trim()) {
-      alert(`Withdrawal request submitted!\nAmount: $${amount}\nMethod: ${method}`);
-      setAmount('');
+  const token = useSelector((state: any) => state.user.Token);
+  // const navigate = useNavigate();
+
+  const paymentMethods = [
+    {
+      id: "btc",
+      name: "Bitcoin",
+      icon: <Bitcoin className="w-5 h-5" />,
+      color: "from-orange-400 to-orange-600",
+      minAmount: 50,
+      fee: "0.0005 BTC",
+      processingTime: "5-30 min",
+      addressLabel: "BTC Wallet Address",
+    },
+    {
+      id: "eth",
+      name: "Ethereum",
+      icon: <Wallet className="w-5 h-5" />,
+      color: "from-blue-400 to-blue-600",
+      minAmount: 30,
+      fee: "0.005 ETH",
+      processingTime: "2-15 min",
+      addressLabel: "ETH Wallet Address",
+    },
+    {
+      id: "usdt",
+      name: "USDT (TRC20)",
+      icon: <DollarSign className="w-5 h-5" />,
+      color: "from-green-400 to-green-600",
+      minAmount: 20,
+      fee: "1 USDT",
+      processingTime: "1-10 min",
+      addressLabel: "USDT Wallet Address (TRC20)",
+    },
+  ];
+
+  const selectedPaymentMethod = paymentMethods.find(
+    (m) => m.id === paymentMethod
+  );
+
+  const getOneUser = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("User ID not found");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`/user/userprofile/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUser(res.data.data);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      toast.error("Failed to fetch user data.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      getOneUser();
+    }
+  }, [token]);
+
+  const isValidAmount = () => {
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) return false;
+    if (selectedPaymentMethod && numAmount < selectedPaymentMethod.minAmount)
+      return false;
+    if (user && numAmount > user.accountBalance) return false;
+    return true;
+  };
+
+  const handleWithdraw = async () => {
+    if (!amount || !walletAddress || !paymentMethod) {
+      toast.error("Please fill all fields before withdrawing.");
+      return;
+    }
+
+    if (!isValidAmount()) {
+      toast.error(
+        `Invalid amount. Minimum: $${selectedPaymentMethod?.minAmount}`
+      );
+      return;
+    }
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("User ID not found");
+      return;
+    }
+
+    const requestData = {
+      amount: parseFloat(amount),
+      add: walletAddress,
+      mode: paymentMethod,
+    };
+
+    const toastLoadingId = toast.loading("Processing withdrawal...");
+    setIsProcessing(true);
+
+    try {
+      const response = await axios.post(
+        `/user/withdraw/${userId}`,
+        requestData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Reset form fields
+      setPaymentMethod("btc");
+      setAmount("");
+      setWalletAddress("");
+
+      toast.dismiss(toastLoadingId);
+      toast.success(
+        response.data.message || "Withdrawal request sent successfully!"
+      );
+
+      // Refresh user data
+      getOneUser();
+    } catch (error: any) {
+      toast.dismiss(toastLoadingId);
+      console.error("Withdrawal Error:", error.response?.data);
+      toast.error(
+        error.response?.data?.message || "An error occurred. Please try again."
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-red-400" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen text-white relative">
@@ -35,7 +194,7 @@ const Withdraw = () => {
       </div>
 
       {/* Scrollable content */}
-      <div className="relative overflow-y-auto h-screen">
+      <div className="relative overflow-y-auto h-screen custom-scrollbar">
         <div className="p-6 pb-20">
           {/* Header */}
           <div className="mb-8">
@@ -43,123 +202,232 @@ const Withdraw = () => {
               <ArrowDownLeft className="w-8 h-8 mr-3 text-red-400" />
               Withdrawal
             </h1>
-            <p className="text-slate-300 text-lg">Withdraw your earnings securely</p>
+            <p className="text-slate-300 text-lg">
+              Withdraw your earnings securely
+            </p>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:bg-slate-900/60 transition-all duration-300 hover:scale-105 hover:border-red-400/40 hover:shadow-lg hover:shadow-red-500/10">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                <div className="w-2 h-2 bg-red-400 rounded-full mr-3 animate-pulse"></div>
-                Withdraw Funds
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">Available Balance</label>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-white">
-                      {showBalance ? '$12,450.00' : '****'}
-                    </span>
-                    <button
-                      onClick={() => setShowBalance(!showBalance)}
-                      className="text-slate-400 hover:text-red-400 transition-colors"
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Withdrawal Form */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Available Balance */}
+              <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:border-red-400/30 transition-all duration-300">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <Wallet className="w-5 h-5 mr-2 text-red-400" />
+                  Available Balance
+                </h2>
+                <div className="flex items-center space-x-3">
+                  <span className="text-3xl font-bold text-red-400">
+                    {showBalance
+                      ? `$${user?.accountBalance || "0.00"}`
+                      : "****"}
+                  </span>
+                  <button
+                    onClick={() => setShowBalance(!showBalance)}
+                    className="text-slate-400 hover:text-red-400 transition-colors p-2 hover:bg-red-500/10 rounded-lg"
+                  >
+                    {showBalance ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Method Selection */}
+              <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:border-red-400/30 transition-all duration-300">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2 text-red-400" />
+                  Select Withdrawal Method
+                </h2>
+
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {paymentMethods.map((method) => (
+                    <div
+                      key={method.id}
+                      onClick={() =>
+                        setPaymentMethod(method.id as PaymentMethod)
+                      }
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
+                        paymentMethod === method.id
+                          ? "border-red-400/50 bg-red-500/10 shadow-lg shadow-red-500/10"
+                          : "border-red-500/20 bg-slate-900/30 hover:border-red-400/30"
+                      }`}
                     >
-                      {showBalance ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                      <div className="flex items-center justify-between mb-3">
+                        <div
+                          className={`p-2 rounded-lg bg-gradient-to-br ${method.color} shadow-lg`}
+                        >
+                          {method.icon}
+                        </div>
+                        {paymentMethod === method.id && (
+                          <CheckCircle className="w-5 h-5 text-green-400" />
+                        )}
+                      </div>
+                      <h3 className="font-semibold text-white mb-1">
+                        {method.name}
+                      </h3>
+                      <div className="space-y-1 text-sm">
+                        <p className="text-slate-300">
+                          Min:{" "}
+                          <span className="text-green-400">
+                            ${method.minAmount}
+                          </span>
+                        </p>
+                        <p className="text-slate-300">
+                          Fee:{" "}
+                          <span className="text-green-400">{method.fee}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Amount and Address */}
+              <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:border-red-400/30 transition-all duration-300">
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Withdrawal Details
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-slate-300 text-sm font-medium mb-2">
+                      Withdrawal Amount
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                        <DollarSign className="w-5 h-5 text-white" />
+                      </div>
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder={`Min: $${
+                          selectedPaymentMethod?.minAmount || 0
+                        }`}
+                        min={selectedPaymentMethod?.minAmount || 0}
+                        className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-red-500/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-red-400/50 focus:ring-2 focus:ring-red-400/20 transition-all"
+                      />
+                    </div>
+                    {amount && !isValidAmount() && (
+                      <p className="text-red-400 text-sm mt-2 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {parseFloat(amount) > (user?.accountBalance || 0)
+                          ? "Insufficient balance"
+                          : `Minimum withdrawal: $${selectedPaymentMethod?.minAmount}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-300 text-sm font-medium mb-2">
+                      {selectedPaymentMethod?.addressLabel || "Address"}
+                    </label>
+                    <textarea
+                      value={walletAddress}
+                      onChange={(e) => setWalletAddress(e.target.value)}
+                      placeholder={`Enter your ${
+                        selectedPaymentMethod?.addressLabel?.toLowerCase() ||
+                        "address"
+                      }`}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-slate-900/50 border border-red-500/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-red-400/50 focus:ring-2 focus:ring-red-400/20 transition-all resize-none"
+                    />
                   </div>
                 </div>
-                
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">Withdrawal Amount</label>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="Enter amount"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-red-500/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-red-400/50 focus:ring-2 focus:ring-red-400/20 transition-all"
-                  />
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Withdrawal Summary */}
+              <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:border-red-400/30 transition-all duration-300">
+                <h3 className="text-lg font-bold text-white mb-4">
+                  Withdrawal Summary
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Method:</span>
+                    <span className="text-white">
+                      {selectedPaymentMethod?.name}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Amount:</span>
+                    <span className="text-white">${amount || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Fee:</span>
+                    <span className="text-red-400">
+                      {selectedPaymentMethod?.fee}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">Processing:</span>
+                    <span className="text-red-400">
+                      {selectedPaymentMethod?.processingTime}
+                    </span>
+                  </div>
+                  <div className="border-t border-red-500/20 pt-3">
+                    <div className="flex justify-between font-semibold">
+                      <span className="text-white">You'll receive:</span>
+                      <span className="text-red-400">
+                        ${amount || "0.00"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                
-                <div>
-                  <label className="block text-slate-300 text-sm font-medium mb-2">Withdrawal Method</label>
-                  <select
-                    value={method}
-                    onChange={(e) => setMethod(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-red-500/20 rounded-lg text-white focus:outline-none focus:border-red-400/50 focus:ring-2 focus:ring-red-400/20 transition-all"
-                  >
-                    <option value="bank">Bank Transfer</option>
-                    <option value="paypal">PayPal</option>
-                    <option value="btc">Bitcoin (BTC)</option>
-                    <option value="eth">Ethereum (ETH)</option>
-                    <option value="usdt">Tether (USDT)</option>
-                  </select>
-                </div>
-                
-                <button 
-                  onClick={handleWithdrawal}
-                  className={`w-full py-3 bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold rounded-lg hover:from-red-500 hover:to-red-700 transition-all flex items-center justify-center space-x-2 shadow-lg ${
-                    !amount.trim() ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  disabled={!amount.trim()}
+
+                <button
+                  onClick={handleWithdraw}
+                  disabled={
+                    !amount ||
+                    !walletAddress ||
+                    !isValidAmount() ||
+                    isProcessing
+                  }
+                  className="w-full mt-6 py-3 bg-gradient-to-r from-red-400 to-red-600 text-white font-semibold rounded-lg hover:from-red-500 hover:to-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 hover:scale-105 active:scale-95"
                 >
-                  <ArrowDownLeft className="w-5 h-5" />
-                  <span>Request Withdrawal</span>
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowDownLeft className="w-4 h-4" />
+                      <span>Request Withdrawal</span>
+                    </>
+                  )}
                 </button>
               </div>
 
-              <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-sm text-slate-300">
-                  <span className="text-red-400 font-medium">Processing Time:</span> 
-                  <br />
-                  Withdrawals are typically processed within 24-48 hours during business days.
-                </p>
-              </div>
-            </div>
-            
-            <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:bg-slate-900/60 transition-all duration-300 hover:scale-105 hover:border-red-400/40 hover:shadow-lg hover:shadow-red-500/10">
-              <h2 className="text-xl font-bold text-white mb-6">Recent Withdrawals</h2>
-              
-              <div className="space-y-4">
-                {[
-                  { amount: '$1,250.00', date: '2025-06-01', status: 'completed', method: 'Bank Transfer' },
-                  { amount: '0.025 BTC', date: '2025-05-30', status: 'completed', method: 'Bitcoin' },
-                  { amount: '$750.00', date: '2025-05-28', status: 'pending', method: 'PayPal' },
-                  { amount: '500 USDT', date: '2025-05-26', status: 'completed', method: 'Tether' },
-                  { amount: '1.2 ETH', date: '2025-05-25', status: 'completed', method: 'Ethereum' },
-                ].map((withdrawal, index) => (
-                  <div key={index} className="border border-red-500/10 rounded-lg bg-slate-900/60 hover:bg-slate-900/80 transition-all duration-300">
-                    <div className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-white">{withdrawal.amount}</p>
-                          <p className="text-sm text-slate-400">{withdrawal.method} • {withdrawal.date}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {withdrawal.status === 'completed' ? (
-                            <CheckCircle className="w-5 h-5 text-green-400" />
-                          ) : (
-                            <Clock className="w-5 h-5 text-yellow-400" />
-                          )}
-                          <span className={`text-sm font-medium px-2 py-1 rounded-lg border ${
-                            withdrawal.status === 'completed' 
-                              ? 'text-green-400 bg-red-500/10 border-red-500/20' 
-                              : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20'
-                          }`}>
-                            {withdrawal.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+              {/* Important Notes */}
+              <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl p-6 hover:border-red-400/30 transition-all duration-300">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+                  <AlertCircle className="w-5 h-5 mr-2 text-red-400" />
+                  Important Notes
+                </h3>
+                <div className="space-y-3 text-sm text-slate-300">
+                  <div className="flex items-start space-x-2">
+                    <Clock className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <span>Withdrawals are processed within 24-48 hours</span>
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-sm text-slate-300">
-                  <span className="text-red-400 font-medium">Need help with withdrawals?</span> 
-                  <br />
-                  Contact our support team for assistance with your withdrawal requests.
-                </p>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <span>
+                      Ensure your wallet address is correct before submitting
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <span>
+                      Minimum withdrawal amounts vary by payment method
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
