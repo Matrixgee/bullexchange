@@ -13,15 +13,16 @@ import {
   Loader2,
   Shield,
   Upload,
-  Wallet,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "../config/axiosconfig";
+import axios from "axios";
 import { setDeposit } from "../Global/UserSlice";
 import { AxiosError } from "axios";
+import { FaEthereum } from "react-icons/fa";
+import { SiTether } from "react-icons/si";
 
 type CryptoMethod = "btc" | "eth" | "usdt";
 
@@ -42,9 +43,10 @@ const Deposit = () => {
   const [showPreview, setShowPreview] = useState(false);
 
   const dispatch = useDispatch();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const userToken = useSelector((state: any) => state.user.Token);
 
-  console.log(userToken);
+  // console.log(userToken);
 
   const paymentMethods = useMemo(
     () => [
@@ -61,7 +63,7 @@ const Deposit = () => {
       {
         id: "eth",
         name: "Ethereum",
-        icon: <Wallet className="w-6 h-6" />,
+        icon: <FaEthereum className="w-6 h-6" />,
         color: "from-blue-400 to-blue-600",
         fee: "Free",
         minDeposit: "$10",
@@ -71,7 +73,7 @@ const Deposit = () => {
       {
         id: "usdt",
         name: "USDT (TRC20)",
-        icon: <DollarSign className="w-6 h-6" />,
+        icon: <SiTether className="w-6 h-6" />,
         color: "from-red-400 to-red-600",
         fee: "Free",
         minDeposit: "$10",
@@ -157,6 +159,8 @@ const Deposit = () => {
       return;
     }
 
+    console.log("🖼️ Uploaded proof file:", proof);
+
     const formData = new FormData();
     formData.append("mode", selectedMethod);
     formData.append("amount", amount);
@@ -166,12 +170,15 @@ const Deposit = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("/user/deposit", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+      const res = await axios.post(
+        "https://bme-c0yv.onrender.com/api/user/deposit",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
 
       toast.success(res.data.message);
       dispatch(setDeposit(res.data.data));
@@ -203,7 +210,7 @@ const Deposit = () => {
 
   return (
     <div className="min-h-screen text-white">
-        {/* Fixed background layers */}
+      {/* Fixed background layers */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-red-900/30 to-slate-900/95"></div>
       <div className="fixed inset-0 bg-gradient-to-b from-red-400/5 to-red-500/5"></div>
 
@@ -625,4 +632,3 @@ const Deposit = () => {
 };
 
 export default Deposit;
-
