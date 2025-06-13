@@ -4,52 +4,84 @@ import {
   TrendingUp,
   CheckCircle,
   Download,
+  LucideScrollText,
 } from 'lucide-react';
+import axios from '../config/axiosconfig';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+
+
+interface Transaction {
+  _id: string;
+  amount: string;
+  mode: string;
+  status: string;
+  createdAt: string;
+  transationType: string;
+  description: string;
+  type: string;
+  date: string;
+  time: string;
+}
 
 const History = () => {
-  const transactions = [
-    {
-      type: 'deposit',
-      amount: '$5,000',
-      date: '2025-06-03',
-      time: '14:30',
-      status: 'completed',
-      description: 'Investment Deposit - Premium Plan'
-    },
-    {
-      type: 'profit',
-      amount: '+$125',
-      date: '2025-06-02',
-      time: '09:15',
-      status: 'completed',
-      description: 'Daily Profit - Starter Plan'
-    },
-    {
-      type: 'withdrawal',
-      amount: '-$1,250',
-      date: '2025-06-01',
-      time: '16:45',
-      status: 'completed',
-      description: 'Withdrawal to Bank Account'
-    },
-    {
-      type: 'deposit',
-      amount: '$10,000',
-      date: '2025-05-28',
-      time: '11:20',
-      status: 'completed',
-      description: 'Investment Deposit - VIP Plan'
-    },
-    {
-      type: 'profit',
-      amount: '+$350',
-      date: '2025-05-27',
-      time: '08:30',
-      status: 'completed',
-      description: 'Weekly Profit - VIP Plan'
-    }
-  ];
+  const [transactions, settransactions] = useState<Transaction[]>([]);
 
+  const userToken = useSelector((state: any) => state.user.Token);
+  useEffect(() => {
+    const getHistory = async () => {
+      try {
+        const response = await axios.get("/user/history", {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+
+        const rawData = response.data.data;
+
+        if (Array.isArray(rawData)) {
+          const mapped = rawData.map((tx: any) => {
+            const createdAt = new Date(tx.createdAt);
+            const date = createdAt.toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            });
+            const time = createdAt.toLocaleTimeString(undefined, {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+
+            return {
+              _id: tx._id,
+              amount: `$${tx.amount.toFixed(2)}`,
+              mode: tx.mode,
+
+              createdAt: tx.createdAt,
+              status: tx.status.toUpperCase(),
+              type:
+                tx.status.toLowerCase() === "approved"
+                  ? "deposit"
+                  : tx.status.toLowerCase() === "failed"
+                  ? "withdrawal"
+                  : "pending",
+
+              transationType: tx.mode,
+              description: `Crypto deposit via ${tx.mode.toUpperCase()}`,
+              date,
+              time,
+            };
+          });
+
+          settransactions(mapped);
+        } else {
+          console.error("Unexpected data format:", rawData);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (userToken) getHistory();
+  }, [userToken]);
   return (
     <div className="min-h-screen text-white relative">
       {/* Fixed background layers */}
@@ -74,7 +106,9 @@ const History = () => {
             <p className="text-slate-300 text-lg">View all your account transactions</p>
           </div>
           
-          <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl overflow-hidden hover:border-red-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10">
+          {
+            transactions.length !== 0 ?
+            <div className="bg-slate-900/40 backdrop-blur-sm border border-red-500/20 rounded-xl overflow-hidden hover:border-red-400/30 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10">
             <div className="p-6 border-b border-red-500/20">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-white flex items-center">
@@ -87,9 +121,8 @@ const History = () => {
                 </button>
               </div>
             </div>
-            
-            <div className="divide-y divide-red-500/10">
-              {transactions.map((transaction, index) => (
+              <div className="divide-y divide-red-500/10">
+              {transactions.map((transaction: Transaction, index: number) => (
                 <div key={index} className="p-6 hover:bg-slate-800/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-red-500/5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -121,18 +154,45 @@ const History = () => {
                       }`}>
                         {transaction.amount}
                       </p>
-                      <div className="flex items-center justify-end space-x-1">
-                        <CheckCircle className={`w-4 h-4 ${transaction.status === "completed" ? "text-green-400" : "text-red-400"}`} />
-                        <span className={`text-sm  ${transaction.status === "completed" ? "text-green-400" : "text-red-400"} bg-red-500/10 px-2 py-1 rounded-lg border border-red-500/20`}>
-                          {transaction.status}
-                        </span>
+                                            <div className="flex items-center justify-end space-x-1">
+                        {transaction.status.toLowerCase() === "approved" && (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <span className="text-sm uppercase text-green-400 bg-green-500/10 px-2 py-1 rounded-lg border border-green-500/20">
+                              {transaction.status}
+                            </span>
+                          </>
+                        )}
+
+                        {transaction.status.toLowerCase() === "pending" && (
+                          <>
+                            <ArrowUpRight className="w-4 h-4 text-yellow-400" />
+                            <span className="text-sm uppercase text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/20">
+                              {transaction.status}
+                            </span>
+                          </>
+                        )}
+
+                        {transaction.status.toLowerCase() === "failed" && (
+                          <>
+                            <ArrowDownLeft className="w-4 h-4 text-red-400" />
+                            <span className="text-sm uppercase text-red-400 bg-red-500/10 px-2 py-1 rounded-lg border border-red-500/20">
+                              {transaction.status}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </div> :
+          <div className='h-[300px] bg-slate-900/40 flex flex-col gap-5 justify-center items-center backdrop-blur-sm border border-red-500/20 rounded-xl overflow-hidden '>
+              <LucideScrollText color="#99a1af" size={30} />
+             <p className='text-gray-400 text-lg'>Your Transaction History will appear here</p> 
+             </div>
+          }
         </div>
       </div>
 
