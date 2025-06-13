@@ -58,7 +58,6 @@ e.preventDefault();
       } else {
         toast.error("Error occurred");
       }
-      setFormData({ userName: "", password: "" });
     } finally {
       setLoading(false);
       toast.dismiss(loadingId);

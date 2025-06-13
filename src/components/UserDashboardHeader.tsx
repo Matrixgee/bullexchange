@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import "./header.css";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearUser } from "../Global/UserSlice";
 
 interface UserHeaderProps {
   active: boolean;
@@ -23,8 +25,10 @@ const UserDashboardHeader: React.FC<UserHeaderProps> = ({ active, setActive }) =
   const [userImage, setUserImage] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [notifications] = useState(0)
+
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dispatch = useDispatch()
   const navigate = useNavigate();
   const handleShowMenu = () => {
     setShowMenu(!showMenu);
@@ -57,7 +61,7 @@ const UserDashboardHeader: React.FC<UserHeaderProps> = ({ active, setActive }) =
   };
 
   const handleLogout = () => {
-    // dispatch({ type: "user/clearUser" });
+    dispatch(clearUser());
     navigate("/login");
     console.log("Logout clicked");
   };
