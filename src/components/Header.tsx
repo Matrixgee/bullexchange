@@ -91,7 +91,7 @@ const Header: React.FC = () => {
                 <button onClick={()=>navigate("/login")} className="text-red-400 border border-red-600 px-6 py-2 rounded-lg cursor-pointer font-semibold transition-all duration-300 hover:text-white hover:bg-gradient-to-r from-red-600 to-red-700 w-fit">
                   Login
                 </button>
-                <button onClick={()=>navigate("/login")} className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2 rounded-lg font-semibold w-fit">
+                <button onClick={()=>navigate("/register")} className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-2 rounded-lg font-semibold w-fit">
                   Get Started
                 </button>
               </div>

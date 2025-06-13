@@ -25,6 +25,7 @@
     "react-router-dom": "^7.6.2",
     "react-router-hash-link": "^2.4.3",
     "recharts": "^2.15.3",
+    "redux-persist": "^6.0.0",
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
