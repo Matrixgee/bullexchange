@@ -1,55 +1,89 @@
-import { useState } from "react";
-import { FaEye, FaCheck, FaTimes, FaSync } from "react-icons/fa";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
+import { FaEye } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import axios from "../config/axiosconfig";
+import { useSelector } from "react-redux";
 
-const mockWithdrawals = [
-  {
-    _id: "wd123456",
-    userId: { userName: "johndoe" },
-    amount: 500,
-    mode: "Bank Transfer",
-    status: "pending",
-    date: "2025-06-01",
-  },
-  {
-    _id: "wd123457",
-    userId: { userName: "janedoe" },
-    amount: 300,
-    mode: "Crypto",
-    status: "processing",
-    date: "2025-06-03",
-  },
-  {
-    _id: "wd123458",
-    userId: { userName: "richinvestor" },
-    amount: 1200,
-    mode: "PayPal",
-    status: "approved",
-    date: "2025-06-05",
-  },
-];
-
-const statusStyles: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
+// Status color mapping
+const statusColors = {
   approved: "bg-green-100 text-green-700",
   processing: "bg-blue-100 text-blue-700",
   rejected: "bg-red-100 text-red-700",
+  pending: "bg-yellow-100 text-yellow-700",
+};
+
+type Withdrawal = {
+  _id: string;
+  userId?: {
+    userName?: string;
+  };
+  amount: number;
+  mode: string;
+  status: string;
+  date: string;
 };
 
 const AllWithdrawal = () => {
-  const [withdrawals, setWithdrawals] = useState(mockWithdrawals);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const userToken = useSelector((state: any) => state.admin.token);
 
-  const updateStatus = (_id: string, newStatus: string) => {
-    setWithdrawals((prev) =>
-      prev.map((item) =>
-        item._id === _id ? { ...item, status: newStatus } : item
-      )
+  // Fetch all withdrawals
+  const fetchWithdrawals = async () => {
+    try {
+      const response = await axios.get("/admin/getWithdrawals", {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      });
+      setWithdrawals(response.data.data);
+    } catch (error) {
+      console.log(error);
+
+      toast.error("Failed to fetch withdrawals.");
+    }
+  };
+
+  useEffect(() => {
+    fetchWithdrawals();
+  }, []);
+
+  // Unified status update function
+  const updateStatus = async (_id: string, status: string) => {
+    const toastId = toast.loading(
+      `${status[0].toUpperCase() + status.slice(1)}...`
     );
-    toast.success(`Marked as ${newStatus}`);
+
+    // API endpoint mapping
+    const endpoints: any = {
+      approved: `/admin/approveWithdrawal/${_id}`,
+      rejected: `/admin/declineWithdrawal/${_id}`,
+      processing: `/admin/pendingWithdrawal/${_id}`,
+    };
+
+    try {
+      const response = await axios.put(
+        endpoints[status],
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
+      );
+      toast.dismiss(toastId);
+      toast.success(response.data.message || `Marked as ${status}`);
+      fetchWithdrawals();
+    } catch (error: any) {
+      toast.dismiss(toastId);
+      toast.error(
+        error.response?.data?.error || `Failed to mark as ${status}.`
+      );
+    }
   };
 
   return (
-    <div className="w-full h-full px-4 py-6 bg-gray-100">
+    <div className="w-full h-full px-4 py-6 bg-red-50">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">
            Client Withdrawal Requests
@@ -69,54 +103,62 @@ const AllWithdrawal = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
-              {withdrawals.map((item) => (
-                <tr key={item._id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 font-medium text-gray-700">
-                    {item._id.slice(0, 6)}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{item.userId.userName}</td>
-                  <td className="px-6 py-4 text-gray-800 font-semibold">
-                    ${item.amount.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{item.mode}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full capitalize ${statusStyles[item.status]}`}
+              {withdrawals.map((withdrawal) => (
+              <tr
+                key={withdrawal._id}
+                className="hover:bg-gray-50 transition-colors"
+              >
+                <td className="px-4 py-3 font-mono text-gray-700">
+                  {withdrawal._id.slice(0, 6)}
+                </td>
+                <td className="px-4 py-3">
+                  {withdrawal.userId?.userName || "N/A"}
+                </td>
+                <td className="px-4 py-3 font-semibold text-gray-800">
+                  ${withdrawal.amount}
+                </td>
+                <td className="px-4 py-3 capitalize">{withdrawal.mode}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                      statusColors[
+                        withdrawal.status as keyof typeof statusColors
+                      ] || "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {withdrawal.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  {new Date(withdrawal.date).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => updateStatus(withdrawal._id, "approved")}
+                      className="text-green-600 border border-green-200 bg-green-50 hover:bg-green-100 px-3 py-1 rounded text-xs font-medium"
                     >
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{item.date}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center items-center gap-2">
-                      <button
-                        onClick={() => updateStatus(item._id, "approved")}
-                        className="text-green-600 hover:text-green-800"
-                        title="Approve"
-                      >
-                        <FaCheck />
-                      </button>
-                      <button
-                        onClick={() => updateStatus(item._id, "processing")}
-                        className="text-blue-600 hover:text-blue-800"
-                        title="Mark as Processing"
-                      >
-                        <FaSync />
-                      </button>
-                      <button
-                        onClick={() => updateStatus(item._id, "rejected")}
-                        className="text-red-600 hover:text-red-800"
-                        title="Decline"
-                      >
-                        <FaTimes />
-                      </button>
-                      <button className="text-gray-600 hover:text-black" title="View">
-                        <FaEye />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => updateStatus(withdrawal._id, "processing")}
+                      className="text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded text-xs font-medium"
+                    >
+                      Process
+                    </button>
+                    <button
+                      onClick={() => updateStatus(withdrawal._id, "rejected")}
+                      className="text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1 rounded text-xs font-medium"
+                    >
+                      Decline
+                    </button>
+                    <button className="text-gray-500 hover:text-blue-600 p-2">
+                      <FaEye className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
             </tbody>
           </table>
         </div>

@@ -5,6 +5,7 @@ import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { FiCheck } from "react-icons/fi";
 import axios from "../config/axiosconfig";
 import toast from "react-hot-toast";
+import logo from '../assets/logo.png'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -103,16 +104,20 @@ const emailRegex = (email: string) => {
 
 
   return (
-    <section className="min-h-screen py-10 flex items-center justify-center relative bg-gradient-to-br from-red-900/90 via-black/90 to-black">
+    <section className="min-h-screen py-10 max-md:px-0.5 flex items-center justify-center relative bg-gradient-to-br from-red-900/90 via-black/90 to-black">
       <motion.div
-        className="w-full max-w-md p-8 bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md rounded-3xl shadow-2xl border border-red-700"
+        className="w-full max-w-md p-8 max-md:px-5 bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md rounded-3xl shadow-2xl border border-red-700"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {/* Logo */}
-        <motion.div className="mb-8 flex justify-center" whileHover={{ scale: 1.1 }}>
-          {/* <img src={logo} alt="Logo" className="h-16 w-auto" /> */}
+        <motion.div
+          className="flex items-center justify-center mb-[23px] gap-2 cursor-pointer"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/")}
+        >
+          <img src={logo} alt="" className="h-[57px] w-[90px]" />
         </motion.div>
 
         <h2 className="text-center text-3xl font-extrabold text-transparent bg-gradient-to-r from-red-500 to-red-700 bg-clip-text mb-6">
@@ -274,7 +279,7 @@ const emailRegex = (email: string) => {
         <p className="mt-6 text-center text-gray-400">
           Already have an account?{" "}
           <Link to="/login" className="text-red-500 font-semibold hover:underline">
-            Log in
+            Login
           </Link>
         </p>
       </motion.div>

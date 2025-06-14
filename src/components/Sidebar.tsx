@@ -8,9 +8,9 @@ import {
   Package,
   History,
   Headphones,
-  TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from '../assets/brandlogo.png'
 
 interface MenuItem {
   name: string;
@@ -104,14 +104,14 @@ const Sidebar: React.FC<SidebarProps> = ({ active, setActive }) => {
           <div className="logo-section">
             <div className="logo-container">
               <div className="logo-icon">
-                <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-8 h-8  rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-lg">
-                    <TrendingUp className="w-6 h-6 text-white" />
+                    <img src={logo} alt="logo" className="w-10 h-8 text-white" />
                   </span>
                 </div>
               </div>
               <div className="logo-text">
-                <span className="brand-name">VertexCrypt</span>
+                <span className="brand-name">Bull Market Exchange</span>
                 <span className="brand-subtitle">Trading Platform</span>
               </div>
             </div>
@@ -237,9 +237,9 @@ const Sidebar: React.FC<SidebarProps> = ({ active, setActive }) => {
 
           .brand-name {
             color: white;
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1;
           }
 
           .brand-subtitle {
