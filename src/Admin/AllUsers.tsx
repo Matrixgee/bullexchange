@@ -72,7 +72,7 @@ const AllUsers = () => {
   }, []);
 
   return (
-    <div className=" h-screen flex flex-col p-6">
+    <div className=" h-screen flex flex-col bg-red-50 p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">All Users</h2>
         <div className="flex space-x-2">

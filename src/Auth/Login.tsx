@@ -8,6 +8,7 @@ import { isAxiosError } from "axios";
 import { useDispatch } from "react-redux";
 import { setToken, setUser } from "../Global/UserSlice";
 import { setAdminToken } from "../Global/AdminSlice";
+import logo from '../assets/logo.png'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -65,13 +66,22 @@ e.preventDefault();
   }
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-900/90 via-black/90 to-black p-6">
+    <section className="min-h-screen flex max-md:px-0.5 items-center justify-center bg-gradient-to-br from-red-900/90 via-black/90 to-black p-6">
+
       <motion.div
-        className="w-full max-w-md p-8 bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md rounded-3xl border border-red-700 shadow-2xl"
+        className="w-full max-w-md p-8 max-md:px-5 bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md rounded-3xl border border-red-700 shadow-2xl"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
+        <motion.div
+          className="flex items-center justify-center mb-[23px] gap-2 cursor-pointer"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/")}
+        >
+          <img src={logo} alt="" className="h-[55px] w-[90px]" />
+        </motion.div>
         <motion.h2
           className="text-3xl font-extrabold text-transparent bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-center mb-8 select-none"
           initial={{ opacity: 0, y: -30 }}
