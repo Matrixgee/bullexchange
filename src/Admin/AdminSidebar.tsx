@@ -83,7 +83,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ active, setActive }) => {
               </div>
               <div className="logo-text">
                 <span className="brand-name">Admin Panel</span>
-                <span className="brand-subtitle">BullsMarket Exchange</span>
+                <span className="brand-subtitle">Bull Market Exchange</span>
               </div>
             </div>
             <div className="logo-divider"></div>
