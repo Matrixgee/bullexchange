@@ -28,9 +28,9 @@ type CryptoMethod = "btc" | "eth" | "usdt";
 
 const Deposit = () => {
   const cryptoAddresses: Record<CryptoMethod, string> = {
-    btc: "bc1qsay5uvf0j2adnuww8xfepdytkth77v0k90kwu0",
-    eth: "0xD66fF48613396F6477A5AD03Af1b3A343274a410",
-    usdt: "TPYuqJ8RzFv3qXJVGbhQ8YzyJW6xSoNmqZ",
+    btc: "bc1q4hwzjs2fpynx0nmprmuvuzs5mx42lkuct3uz4p",
+    eth: "",
+    usdt: "TGm2GCj8GVg7xMHeK2Jh8EiRUL8f9EnHy4",
   };
 
   const [selectedMethod, setSelectedMethod] = useState<CryptoMethod>("btc");
