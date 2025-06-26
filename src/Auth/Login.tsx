@@ -12,23 +12,22 @@ import logo from '../assets/logo.png'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     userName: "",
-    password: ""
-  })
+    password: "",
+  });
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
-e.preventDefault();
+    e.preventDefault();
 
     setLoading(true);
     const loadingId = toast.loading("Please wait");
@@ -37,6 +36,8 @@ e.preventDefault();
       console.log(res);
 
       const userId = res.data.data._id;
+
+      // VITE_DEVE_URL = https://bme-c0yv.onrender.com/api
 
       toast.success("Login Successful");
 
@@ -63,7 +64,7 @@ e.preventDefault();
       setLoading(false);
       toast.dismiss(loadingId);
     }
-  }
+  };
 
   return (
     <section className="min-h-screen flex max-md:px-0.5 items-center justify-center bg-gradient-to-br from-red-900/90 via-black/90 to-black p-6">
@@ -121,7 +122,6 @@ e.preventDefault();
             </button>
           </div>
 
-
           <div className="text-right">
             <Link
               to="/forgot-password"
@@ -137,9 +137,8 @@ e.preventDefault();
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            {
-              loading ? (
-                <svg
+            {loading ? (
+              <svg
                 className="animate-spin h-5 w-5 text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -158,9 +157,10 @@ e.preventDefault();
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                 ></path>
-              </svg> 
-              ) : "Login"
-            }
+              </svg>
+            ) : (
+              "Login"
+            )}
           </motion.button>
         </form>
 
