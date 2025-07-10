@@ -5,7 +5,8 @@ import { BsEye, BsEyeSlash } from "react-icons/bs";
 import { FiCheck } from "react-icons/fi";
 import axios from "../config/axiosconfig";
 import toast from "react-hot-toast";
-import logo from '../assets/logo.png'
+import logo from "../assets/logo.png";
+import { isAxiosError } from "axios";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -20,88 +21,102 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [emailErr, setEmailErr] = useState<boolean>(false)
-  const [passwordErr, setPasswordErr] = useState<boolean>(false)
+  const [emailErr, setEmailErr] = useState<boolean>(false);
+  const [passwordErr, setPasswordErr] = useState<boolean>(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
   const passwordRegex = (password: string) => {
-  return /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(password);
-};
+    return /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(password);
+  };
 
-const emailRegex = (email: string) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
+  const emailRegex = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const {
-    fullName,
-    userName,
-    email,
-    phoneNumber,
-    password,
-    confirmPassword,
-  } = formData;
+    const {
+      fullName,
+      userName,
+      email,
+      phoneNumber,
+      password,
+      confirmPassword,
+    } = formData;
 
-  // Required field check
-  if (!fullName || !userName || !email || !phoneNumber || !password || !confirmPassword) {
-    toast.error("Please fill all fields.");
-    return;
-  }
+    // Required field check
+    if (
+      !fullName ||
+      !userName ||
+      !email ||
+      !phoneNumber ||
+      !password ||
+      !confirmPassword
+    ) {
+      toast.error("Please fill all fields.");
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    toast.error("Passwords do not match.");
-    return;
-  }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
 
-  const isPasswordValid = passwordRegex(password);
-  const isEmailValid = emailRegex(email);
+    const isPasswordValid = passwordRegex(password);
+    const isEmailValid = emailRegex(email);
 
-  setPasswordErr(!isPasswordValid);
-  setEmailErr(!isEmailValid);
+    setPasswordErr(!isPasswordValid);
+    setEmailErr(!isEmailValid);
 
-  if (!isPasswordValid || !isEmailValid) {
-    return; 
-  }
+    if (!isPasswordValid || !isEmailValid) {
+      return;
+    }
 
-  setLoading(true);
-  const loadingId = toast.loading("Please wait...")
+    setLoading(true);
+    const loadingId = toast.loading("Please wait...");
 
-  try {
-    const res = await axios.post("/user/signup", formData);
-    console.log(res)
+    try {
+      const res = await axios.post("/user/signup", formData);
+      console.log(res);
 
-    setTimeout(() => {
-      toast.success("Account created successfully!");
-      setFormData({
-        fullName: "",
-        userName: "",
-        email: "",
-        phoneNumber: "",
-        password: "",
-        confirmPassword: "",
-      });
-      navigate("/login");
-    }, 3000);
-  } catch (error) {
-    console.log(error);
-    toast.error("Signup failed. Please try again.");
-  } finally {
-    setLoading(false);
-    toast.dismiss(loadingId)
-  }
-};
+      setTimeout(() => {
+        toast.success("Account created successfully!");
+        setFormData({
+          fullName: "",
+          userName: "",
+          email: "",
+          phoneNumber: "",
+          password: "",
+          confirmPassword: "",
+        });
+        navigate("/login");
+      }, 3000);
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const errorMsg =
+          (error.response?.data?.message && error.message
+            ? `${error.response.data.message} - ${error.message}`
+            : error.response?.data?.message || error.message) ||
+          "An unexpected error occurred";
 
+        toast.error(errorMsg);
+      } else {
+        toast.error("Error occurred");
+      }
+    } finally {
+      setLoading(false);
+      toast.dismiss(loadingId);
+    }
+  };
 
   const inputClass =
-  "bg-black/60 border border-red-700 text-gray-100 placeholder-gray-400 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-black/75 transition duration-200 w-full";
-
+    "bg-black/60 border border-red-700 text-gray-100 placeholder-gray-400 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-black/75 transition duration-200 w-full";
 
   return (
     <section className="min-h-screen py-10 max-md:px-0.5 flex items-center justify-center relative bg-gradient-to-br from-red-900/90 via-black/90 to-black">
@@ -125,121 +140,122 @@ const emailRegex = (email: string) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-      
+          <div className="">
+            <label htmlFor="firstName" className="text-gray-300 mb-1 block">
+              Full Name
+            </label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="John"
+              className={inputClass}
+            />
+          </div>
 
+          <div>
+            <label htmlFor="userName" className="text-gray-300 mb-1 block">
+              Username
+            </label>
+            <input
+              id="userName"
+              name="userName"
+              type="text"
+              value={formData.userName}
+              onChange={handleChange}
+              placeholder="johndoe123"
+              className={inputClass}
+            />
+          </div>
 
-  <div className="">
-    <label htmlFor="firstName" className="text-gray-300 mb-1 block">
-      Full Name
-    </label>
-    <input
-      id="fullName"
-      name="fullName"
-      type="text"
-      value={formData.fullName}
-      onChange={handleChange}
-      placeholder="John"
-      className={inputClass}
-    />
-  </div>
+          <div>
+            <label htmlFor="email" className="text-gray-300 mb-1 block">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              className={inputClass}
+            />
+          </div>
+          <p className="text-red-700 text-sm">
+            {emailErr ? "Please enter a valid email address." : null}
+          </p>
 
-<div>
-  <label htmlFor="userName" className="text-gray-300 mb-1 block">
-    Username
-  </label>
-  <input
-    id="userName"
-    name="userName"
-    type="text"
-    value={formData.userName}
-    onChange={handleChange}
-    placeholder="johndoe123"
-    className={inputClass}
-  />
-</div>
+          <div>
+            <label htmlFor="phoneNumber" className="text-gray-300 mb-1 block">
+              Phone Number
+            </label>
+            <input
+              id="phoneNumber"
+              name="phoneNumber"
+              type="tel"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="+123 456 7890"
+              className={inputClass}
+            />
+          </div>
 
-<div>
-  <label htmlFor="email" className="text-gray-300 mb-1 block">
-    Email
-  </label>
-  <input
-    id="email"
-    name="email"
-    type="email"
-    value={formData.email}
-    onChange={handleChange}
-    placeholder="you@example.com"
-    className={inputClass}
-  />
-</div>
-<p className="text-red-700 text-sm">
-  {emailErr ? "Please enter a valid email address." : null}
-</p>
+          <div className="relative">
+            <label htmlFor="password" className="text-gray-300 mb-1 block">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Password"
+              className={`${inputClass} pr-10`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-300 hover:text-red-400"
+              aria-label="Toggle password visibility"
+            >
+              {showPassword ? <BsEyeSlash /> : <BsEye />}
+            </button>
+          </div>
+          <p className="text-red-600 text-sm">
+            {passwordErr
+              ? "Password must be at least 8 characters and include a special character."
+              : null}
+          </p>
 
-<div>
-  <label htmlFor="phoneNumber" className="text-gray-300 mb-1 block">
-    Phone Number
-  </label>
-  <input
-    id="phoneNumber"
-    name="phoneNumber"
-    type="tel"
-    value={formData.phoneNumber}
-    onChange={handleChange}
-    placeholder="+123 456 7890"
-    className={inputClass}
-  />
-</div>
-
-<div className="relative">
-  <label htmlFor="password" className="text-gray-300 mb-1 block">
-    Password
-  </label>
-  <input
-    id="password"
-    name="password"
-    type={showPassword ? "text" : "password"}
-    value={formData.password}
-    onChange={handleChange}
-    placeholder="Password"
-    className={`${inputClass} pr-10`}
-  />
-  <button
-    type="button"
-    onClick={() => setShowPassword((prev) => !prev)}
-    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-300 hover:text-red-400"
-    aria-label="Toggle password visibility"
-  >
-    {showPassword ? <BsEyeSlash /> : <BsEye />}
-  </button>
-</div>
-<p className="text-red-600 text-sm">
-  {passwordErr ? "Password must be at least 8 characters and include a special character." : null}
-</p>
-
-<div className="relative">
-  <label htmlFor="confirmPassword" className="text-gray-300 mb-1 block">
-    Confirm Password
-  </label>
-  <input
-    id="confirmPassword"
-    name="confirmPassword"
-    type={showConfirmPassword ? "text" : "password"}
-    value={formData.confirmPassword}
-    onChange={handleChange}
-    placeholder="Confirm Password"
-    className={`${inputClass} pr-10`}
-  />
-  <button
-    type="button"
-    onClick={() => setShowConfirmPassword((prev) => !prev)}
-    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-300 hover:text-red-400"
-    aria-label="Toggle confirm password visibility"
-  >
-    {showConfirmPassword ? <BsEyeSlash /> : <BsEye />}
-  </button>
-</div>
-
+          <div className="relative">
+            <label
+              htmlFor="confirmPassword"
+              className="text-gray-300 mb-1 block"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm Password"
+              className={`${inputClass} pr-10`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-300 hover:text-red-400"
+              aria-label="Toggle confirm password visibility"
+            >
+              {showConfirmPassword ? <BsEyeSlash /> : <BsEye />}
+            </button>
+          </div>
 
           <button
             type="submit"
@@ -278,7 +294,10 @@ const emailRegex = (email: string) => {
 
         <p className="mt-6 text-center text-gray-400">
           Already have an account?{" "}
-          <Link to="/login" className="text-red-500 font-semibold hover:underline">
+          <Link
+            to="/login"
+            className="text-red-500 font-semibold hover:underline"
+          >
             Login
           </Link>
         </p>
