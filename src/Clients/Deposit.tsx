@@ -24,13 +24,13 @@ import { AxiosError } from "axios";
 import { FaEthereum } from "react-icons/fa";
 import { SiTether } from "react-icons/si";
 
-type CryptoMethod = "btc" | "eth" | "usdt";
+type CryptoMethod = "btc" | "eth" | "xrp";
 
 const Deposit = () => {
   const cryptoAddresses: Record<CryptoMethod, string> = {
     btc: "bc1q4hwzjs2fpynx0nmprmuvuzs5mx42lkuct3uz4p",
     eth: "",
-    usdt: "TGm2GCj8GVg7xMHeK2Jh8EiRUL8f9EnHy4",
+    xrp: "rBFSPy2hjgUon2Baqu9jtR1LjrQrznY5Hc",
   };
 
   const [selectedMethod, setSelectedMethod] = useState<CryptoMethod>("btc");
