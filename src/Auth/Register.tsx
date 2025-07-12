@@ -99,11 +99,13 @@ const Register = () => {
       }, 3000);
     } catch (error: unknown) {
       if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
         const errorMsg =
-          (error.response?.data?.message && error.message
-            ? `${error.response.data.message} - ${error.message}`
-            : error.response?.data?.message || error.message) ||
-          "An unexpected error occurred";
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
 
         toast.error(errorMsg);
       } else {
