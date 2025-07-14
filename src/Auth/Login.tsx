@@ -8,7 +8,7 @@ import { isAxiosError } from "axios";
 import { useDispatch } from "react-redux";
 import { setToken, setUser } from "../Global/UserSlice";
 import { setAdminToken } from "../Global/AdminSlice";
-import logo from '../assets/logo.png'
+import logo from "../assets/logo.png";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -68,7 +68,6 @@ const Login = () => {
 
   return (
     <section className="min-h-screen flex max-md:px-0.5 items-center justify-center bg-gradient-to-br from-red-900/90 via-black/90 to-black p-6">
-
       <motion.div
         className="w-full max-w-md p-8 max-md:px-5 bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md rounded-3xl border border-red-700 shadow-2xl"
         initial={{ opacity: 0, y: 40 }}
@@ -133,6 +132,7 @@ const Login = () => {
 
           <motion.button
             type="submit"
+            disabled={loading}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold flex justify-center items-center shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
