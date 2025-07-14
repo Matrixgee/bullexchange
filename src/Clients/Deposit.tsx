@@ -22,7 +22,8 @@ import axios from "axios";
 import { setDeposit } from "../Global/UserSlice";
 import { AxiosError } from "axios";
 import { FaEthereum } from "react-icons/fa";
-import { SiTether } from "react-icons/si";
+
+import { RiXrpLine } from "react-icons/ri";
 
 type CryptoMethod = "btc" | "eth" | "xrp";
 
@@ -71,14 +72,14 @@ const Deposit = () => {
         network: "ETH",
       },
       {
-        id: "usdt",
-        name: "USDT (TRC20)",
-        icon: <SiTether className="w-6 h-6" />,
+        id: "xrp",
+        name: "XRP",
+        icon: <RiXrpLine className="w-6 h-6" />,
         color: "from-red-400 to-red-600",
         fee: "Free",
         minDeposit: "$10",
         processingTime: "1-10 min",
-        network: "TRC20",
+        network: "XRP",
       },
     ],
     []
