@@ -25,13 +25,14 @@ import { FaEthereum } from "react-icons/fa";
 
 import { RiXrpLine } from "react-icons/ri";
 
-type CryptoMethod = "btc" | "eth" | "xrp";
+type CryptoMethod = "btc" | "eth" | "usdt" | "xrp";
 
 const Deposit = () => {
   const cryptoAddresses: Record<CryptoMethod, string> = {
     btc: "bc1q4hwzjs2fpynx0nmprmuvuzs5mx42lkuct3uz4p",
     eth: "",
     xrp: "rBFSPy2hjgUon2Baqu9jtR1LjrQrznY5Hc",
+    usdt: "0xcB8421868A3183C7A85297D06a93b0B082D4fC59",
   };
 
   const [selectedMethod, setSelectedMethod] = useState<CryptoMethod>("btc");
@@ -80,6 +81,16 @@ const Deposit = () => {
         minDeposit: "$10",
         processingTime: "1-10 min",
         network: "XRP",
+      },
+      {
+        id: "usdt",
+        name: "Tether",
+        icon: <DollarSign className="w-6 h-6" />,
+        color: "from-green-400 to-green-600",
+        fee: "Free",
+        minDeposit: "$10",
+        processingTime: "5-30 min",
+        network: "ERC20",
       },
     ],
     []
